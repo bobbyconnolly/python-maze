@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hướng Dẫn Tạo Mê Cung với Flask</title>
+    <style>
+        /* Reset và các styles cơ bản */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #1a1a1a;
+            background: #f5f5f5;
+        }
+
+        /* Container chính */
+        .container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        /* Tiêu đề */
+        h1, h2, h3 {
+            color: #2c3e50;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        h1 { font-size: 1.8rem; }
+        h2 { font-size: 1.5rem; }
+        h3 { font-size: 1.2rem; }
+
+        /* Đoạn văn */
+        p {
+            margin-bottom: 1rem;
+        }
+
+        li {
+            margin-left: 2rem;
+        }
+
+        /* Code blocks */
+        pre {
+            background: #1a1a1a;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 1rem 0;
+            font-family: 'Consolas', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Syntax highlighting */
+        .keyword { color: #ff79c6; }
+        .string { color: #f1fa8c; }
+        .comment { color: #6272a4; }
+        .function { color: #50fa7b; }
+        .decorator { color: #f1fa8c; }
+        .builtin { color: #8be9fd; }
+        .number { color: #bd93f9; }
+        .operator { color: #ff79c6; }
+
+        /* Sections */
+        .section {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin: 1rem 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        /* Notes và warnings */
+        .note {
+            background: #f1f8ff;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .warning {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+
+        .glossary-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 1rem 0;
+                background: white;
+            }
+            
+        .glossary-table th,
+        .glossary-table td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        
+        .glossary-table th {
+            background: #2c3e50;
+            color: white;
+            font-weight: 500;
+        }
+        
+        .glossary-table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        
+        .glossary-table tr:hover {
+            background: #f1f8ff;
+        }
+        
+        /* Responsive table */
+        @media (max-width: 600px) {
+            .glossary-table {
+                font-size: 0.9rem;
+            }
+            
+            .glossary-table td,
+            .glossary-table th {
+                padding: 8px;
+            }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .container {
+                padding: 0.5rem;
+            }
+            
+            pre {
+                font-size: 0.8rem;
+                padding: 0.75rem;
+            }
+
+            .section {
+                padding: 1.5rem 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hướng Dẫn Tạo Mê Cung với Flask</h1>
+        
+        <div class="section">
+            <h2>File main.py - Khởi Tạo Ứng Dụng Flask</h2>
+            
+            <p>File <code>main.py</code> là file chính của ứng dụng. Nó chịu trách nhiệm:</p>
+            <ul>
+                <li>Khởi tạo ứng dụng Flask</li>
+                <li>Định nghĩa các routes (đường dẫn)</li>
+                <li>Xử lý requests từ người dùng</li>
+                <li>Tạo mê cung mới</li>
+            </ul>
+
+            <h3>Code Chi Tiết</h3>
+            <pre><span class="comment"># Import các thư viện cần thiết</span>
+<span class="keyword">from</span> <span class="builtin">flask</span> <span class="keyword">import</span> Flask, render_template, jsonify, request
+<span class="keyword">import</span> logging
+<span class="keyword">from</span> maze_generator <span class="keyword">import</span> generate_maze
+
+<span class="comment"># Khởi tạo ứng dụng Flask</span>
+app = Flask(__name__)
+logging.basicConfig(level=logging.DEBUG)
+
+<span class="comment"># Route cho trang chủ</span>
+<span class="decorator">@app.route</span>(<span class="string">'/'</span>)
+<span class="keyword">def</span> <span class="function">index</span>():
+    <span class="keyword">return</span> render_template(<span class="string">'maze.html'</span>)
+
+<span class="comment"># API tạo mê cung mới</span>
+<span class="decorator">@app.route</span>(<span class="string">'/api/maze'</span>, methods=[<span class="string">'POST'</span>])
+<span class="keyword">def</span> <span class="function">create_maze</span>():
+    <span class="keyword">try</span>:
+        data = request.get_json()
+        width = max(<span class="number">7</span>, (<span class="builtin">int</span>(data.get(<span class="string">'width'</span>, <span class="number">33</span>)) // <span class="number">2</span>) * <span class="number">2</span> + <span class="number">1</span>)
+        height = max(<span class="number">7</span>, (<span class="builtin">int</span>(data.get(<span class="string">'height'</span>, <span class="number">33</span>)) // <span class="number">2</span>) * <span class="number">2</span> + <span class="number">1</span>)
+
+        maze = {
+            <span class="string">'width'</span>: width,
+            <span class="string">'height'</span>: height,
+            <span class="string">'grid'</span>: generate_maze(width, height)
+        }
+
+        <span class="keyword">return</span> jsonify(maze), <span class="number">201</span>
+
+    <span class="keyword">except</span> Exception <span class="keyword">as</span> e:
+        app.logger.error(<span class="string">f"Maze generation failed: </span>{str(e)}<span class="string">"</span>)
+        <span class="keyword">return</span> jsonify({<span class="string">'error'</span>: <span class="string">f'Maze generation failed: </span>{str(e)}<span class="string">'</span>}), <span class="number">500</span>
+
+<span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:
+    app.run(debug=<span class="builtin">True</span>)</pre>
+
+            <h3>Giải Thích Chi Tiết</h3>
+            
+            <h4>1. Imports</h4>
+            <p>Đầu tiên, chúng ta import các thư viện cần thiết:</p>
+            <ul>
+                <li><code>Flask</code>: Framework web chính</li>
+                <li><code>render_template</code>: Để hiển thị file HTML</li>
+                <li><code>jsonify</code>: Chuyển đổi dữ liệu Python thành JSON</li>
+                <li><code>request</code>: Xử lý requests từ người dùng</li>
+                <li><code>logging</code>: Ghi log để debug</li>
+            </ul>
+
+            <h4>2. Khởi Tạo Ứng Dụng</h4>
+            <p>Dòng <code>app = Flask(__name__)</code> tạo một ứng dụng Flask mới. <code>__name__</code> là một biến đặc biệt trong Python cho biết file này đang được chạy trực tiếp.</p>
+
+            <div class="note">
+                <strong>Lưu ý:</strong> Debug mode được bật (<code>debug=True</code>) để:
+                <ul>
+                    <li>Tự động reload server khi code thay đổi</li>
+                    <li>Hiển thị thông tin chi tiết khi có lỗi</li>
+                    <li>Chỉ nên dùng khi phát triển, không dùng khi deploy</li>
+                </ul>
+            </div>
+
+            <h4>3. Routes</h4>
+            <p>Ứng dụng có hai routes chính:</p>
+            <ul>
+                <li><code>@app.route('/')</code>: Hiển thị trang chủ với mê cung</li>
+                <li><code>@app.route('/api/maze')</code>: API tạo mê cung mới</li>
+            </ul>
+
+            <h4>4. Xử Lý Kích Thước Mê Cung</h4>
+            <p>Công thức tính kích thước mê cung:</p>
+            <pre>width = max(7, (int(data.get('width', 33)) // 2) * 2 + 1)</pre>
+            <ul>
+                <li>Đảm bảo kích thước tối thiểu là 7</li>
+                <li>Chuyển đổi sang số lẻ để có tường giữa các đường đi</li>
+                <li>Mặc định là 33 nếu không có giá trị được gửi lên</li>
+            </ul>
+
+            <div class="warning">
+                <strong>Quan trọng:</strong> Kích thước phải là số lẻ để đảm bảo có tường giữa các đường đi trong mê cung.
+            </div>
+        </div>
+
+<div class="section">
+    <h2>File maze_generator.py - Thuật Toán Tạo Mê Cung</h2>
+    
+    <p>File này chứa thuật toán để tạo mê cung sử dụng phương pháp đệ quy quay lui (recursive backtracking). 
+    Đây là một thuật toán phổ biến để tạo mê cung hoàn hảo - tức là mê cung không có vòng lặp và luôn có đường đi từ điểm bắt đầu đến đích.</p>
+
+    <h3>Nguyên Lý Hoạt Động</h3>
+    <ol>
+        <li>Bắt đầu với một lưới toàn tường (số 1)</li>
+        <li>Chọn điểm bắt đầu và đánh dấu là đường đi (số 0)</li>
+        <li>Đệ quy tạo đường đi theo các hướng ngẫu nhiên</li>
+        <li>Đảm bảo lối vào và lối ra thông thoáng</li>
+    </ol>
+
+    <h3>Code Chi Tiết</h3>
+    <pre><span class="keyword">import</span> random
+
+<span class="keyword">def</span> <span class="function">generate_maze</span>(width, height):
+    <span class="string">"""
+    Tạo mê cung sử dụng thuật toán đệ quy quay lui.
+    0 = đường đi, 1 = tường
+    """</span>
+    <span class="comment"># Khởi tạo mê cung với toàn tường</span>
+    maze = [[<span class="number">1</span> <span class="keyword">for</span> x <span class="keyword">in</span> <span class="builtin">range</span>(width)] <span class="keyword">for</span> y <span class="keyword">in</span> <span class="builtin">range</span>(height)]
+    
+    <span class="keyword">def</span> <span class="function">carve_path</span>(x, y):
+        maze[y][x] = <span class="number">0</span>  <span class="comment"># Đánh dấu ô hiện tại là đường đi</span>
+        
+        <span class="comment"># Định nghĩa 4 hướng có thể đi: phải, xuống, trái, lên</span>
+        directions = [(<span class="number">2</span>,<span class="number">0</span>), (<span class="number">0</span>,<span class="number">2</span>), (<span class="number">-2</span>,<span class="number">0</span>), (<span class="number">0</span>,<span class="number">-2</span>)]
+        random.shuffle(directions)  <span class="comment"># Xáo trộn các hướng để tạo ngẫu nhiên</span>
+        
+        <span class="comment"># Thử từng hướng</span>
+        <span class="keyword">for</span> dx, dy <span class="keyword">in</span> directions:
+            new_x, new_y = x + dx, y + dy
+            
+            <span class="comment"># Kiểm tra xem có thể đi theo hướng này không</span>
+            <span class="keyword">if</span> (<span class="number">0</span> <= new_x < width <span class="keyword">and</span> <span class="number">0</span> <= new_y < height 
+                <span class="keyword">and</span> maze[new_y][new_x] == <span class="number">1</span>):  <span class="comment"># Nếu vẫn là tường</span>
+                
+                <span class="comment"># Phá tường giữa ô hiện tại và ô mới</span>
+                maze[y + dy//<span class="number">2</span>][x + dx//<span class="number">2</span>] = <span class="number">0</span>
+                carve_path(new_x, new_y)
+    
+    <span class="comment"># Bắt đầu từ ô (1,1) để tạo đường viền</span>
+    carve_path(<span class="number">1</span>, <span class="number">1</span>)
+    
+    <span class="comment"># Đảm bảo lối vào và ra thông thoáng</span>
+    maze[<span class="number">1</span>][<span class="number">1</span>] = <span class="number">0</span>      <span class="comment"># Điểm bắt đầu</span>
+    maze[<span class="number">1</span>][<span class="number">2</span>] = <span class="number">0</span>      <span class="comment"># Đường vào</span>
+    maze[height-<span class="number">2</span>][width-<span class="number">2</span>] = <span class="number">0</span>  <span class="comment"># Điểm đích</span>
+    maze[height-<span class="number">2</span>][width-<span class="number">3</span>] = <span class="number">0</span>  <span class="comment"># Đường ra</span>
+    
+    <span class="keyword">return</span> maze</pre>
+
+    <h3>Giải Thích Chi Tiết</h3>
+
+    <h4>1. Cấu Trúc Dữ Liệu</h4>
+    <div class="note">
+        <p>Mê cung được biểu diễn bằng mảng 2 chiều:</p>
+        <ul>
+            <li><code>0</code>: Đường đi</li>
+            <li><code>1</code>: Tường</li>
+            <li>Kích thước luôn là số lẻ để đảm bảo có tường giữa các đường đi</li>
+        </ul>
+    </div>
+
+    <h4>2. Thuật Toán Đệ Quy</h4>
+    <p>Hàm <code>carve_path</code> hoạt động theo nguyên tắc:</p>
+    <ul>
+        <li>Đánh dấu ô hiện tại là đường đi</li>
+        <li>Xáo trộn 4 hướng có thể đi để tạo tính ngẫu nhiên</li>
+        <li>Với mỗi hướng:
+            <ul>
+                <li>Tính toán ô tiếp theo (cách 2 bước)</li>
+                <li>Kiểm tra xem có thể đi được không</li>
+                <li>Nếu được, phá tường giữa hai ô và đệ quy</li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="note">
+        <p><strong>Tại sao di chuyển 2 bước?</strong></p>
+        <p>Khi di chuyển 2 bước, chúng ta đảm bảo luôn có tường giữa các đường đi. Bước đầu tiên là phá tường, bước thứ hai là tạo đường đi mới.</p>
+    </div>
+
+    <h4>3. Ví Dụ Minh Họa</h4>
+    <p>Một mê cung 5x5 có thể trông như sau:</p>
+    <pre>1 1 1 1 1    # 1 = Tường
+1 0 0 0 1    # 0 = Đường đi
+1 1 0 1 1    
+1 0 0 0 1    
+1 1 1 1 1</pre>
+
+    <div class="warning">
+        <strong>Lưu ý quan trọng:</strong>
+        <ul>
+            <li>Mê cung luôn có lời giải (có đường từ điểm bắt đầu đến đích)</li>
+            <li>Không có vòng lặp (perfect maze)</li>
+            <li>Điểm bắt đầu luôn ở (1,1) và điểm đích ở góc đối diện</li>
+        </ul>
+    </div>
+
+    <h4>4. Tối Ưu Và Mở Rộng</h4>
+    <p>Có thể cải tiến thuật toán bằng cách:</p>
+    <ul>
+        <li>Thêm xác suất để tạo đường đi rộng hơn</li>
+        <li>Thêm vòng lặp để tạo nhiều đường đi</li>
+        <li>Tạo phòng hoặc không gian rộng</li>
+        <li>Thêm trọng số cho các hướng đi</li>
+    </ul>
+</div>
+
+<div class="section">
+    <h2>File static/js/maze_display.js - Hiển Thị Và Điều Khiển Mê Cung</h2>
+    
+    <p>File JavaScript này xử lý phần hiển thị đồ họa và tương tác của mê cung, bao gồm:</p>
+    <ul>
+        <li>Vẽ mê cung trên canvas HTML5</li>
+        <li>Xử lý di chuyển của người chơi</li>
+        <li>Tạo hiệu ứng và hoạt ảnh</li>
+        <li>Kiểm tra chiến thắng</li>
+    </ul>
+
+    <h3>1. Biến Toàn Cục và Khởi Tạo</h3>
+    <pre><span class="comment">// Các biến điều khiển trò chơi</span>
+<span class="keyword">let</span> canvas, ctx;  <span class="comment">// Canvas và context để vẽ</span>
+<span class="keyword">let</span> currentMaze = <span class="keyword">null</span>;  <span class="comment">// Dữ liệu mê cung hiện tại</span>
+<span class="keyword">let</span> cellSize = <span class="number">30</span>;  <span class="comment">// Kích thước mỗi ô (pixel)</span>
+
+<span class="comment">// Vị trí người chơi và đích</span>
+<span class="keyword">const</span> START_POS = { x: <span class="number">1</span>, y: <span class="number">1</span> };
+<span class="keyword">const</span> GOAL_POS = { x: <span class="keyword">null</span>, y: <span class="keyword">null</span> };
+<span class="keyword">let</span> playerPos = { ...START_POS };
+
+<span class="comment">// Themes màu sắc</span>
+<span class="keyword">const</span> THEMES = {
+    default: {
+        wall: <span class="string">'#2c3e50'</span>,
+        path: <span class="string">'#ecf0f1'</span>,
+        player: <span class="string">'#e74c3c'</span>,
+        goal: <span class="string">'#27ae60'</span>,
+        visited: <span class="string">'#95a5a6'</span>
+    }
+};</pre>
+
+    <h3>2. Khởi Tạo Trò Chơi</h3>
+    <pre><span class="keyword">function</span> <span class="function">initMazeGame</span>() {
+    console.log(<span class="string">'Khởi tạo trò chơi mê cung...'</span>);
+    
+    <span class="comment">// Lấy canvas và context</span>
+    canvas = document.getElementById(<span class="string">'mazeCanvas'</span>);
+    ctx = canvas.getContext(<span class="string">'2d'</span>);
+    
+    <span class="comment">// Thiết lập các sự kiện</span>
+    setupEventListeners();
+    
+    <span class="comment">// Tạo mê cung mới</span>
+    generateNewMaze();
+}</pre>
+
+    <h3>3. Tạo Mê Cung Mới</h3>
+    <pre><span class="keyword">async function</span> <span class="function">generateNewMaze</span>() {
+    console.log(<span class="string">'Đang tạo mê cung mới...'</span>);
+    
+    <span class="keyword">const</span> width = <span class="builtin">parseInt</span>(document.getElementById(<span class="string">'mazeWidth'</span>).value);
+    <span class="keyword">const</span> height = <span class="builtin">parseInt</span>(document.getElementById(<span class="string">'mazeHeight'</span>).value);
+    
+    <span class="keyword">try</span> {
+        <span class="keyword">const</span> response = <span class="keyword">await</span> fetch(<span class="string">'/api/maze'</span>, {
+            method: <span class="string">'POST'</span>,
+            headers: {
+                <span class="string">'Content-Type'</span>: <span class="string">'application/json'</span>
+            },
+            body: <span class="builtin">JSON</span>.stringify({ width, height })
+        });
+        
+        <span class="keyword">if</span> (!response.ok) <span class="keyword">throw new</span> <span class="builtin">Error</span>(<span class="string">'Lỗi khi tạo mê cung'</span>);
+        
+        currentMaze = <span class="keyword">await</span> response.json();
+        resetGame();
+        resizeCanvas();
+        drawMaze();
+        
+    } <span class="keyword">catch</span> (error) {
+        showStatus(error.message);
+    }
+}</pre>
+
+    <div class="note">
+        <strong>Lưu ý về Async/Await:</strong>
+        <p>Hàm generateNewMaze sử dụng async/await vì cần đợi server trả về dữ liệu mê cung mới. Đây là cách hiện đại để xử lý các thao tác bất đồng bộ trong JavaScript.</p>
+    </div>
+
+    <h3>4. Vẽ Mê Cung</h3>
+    <pre><span class="keyword">function</span> <span class="function">drawMaze</span>() {
+    <span class="keyword">if</span> (!currentMaze || !currentMaze.grid) {
+        console.error(<span class="string">'Không có dữ liệu mê cung để vẽ'</span>);
+        <span class="keyword">return</span>;
+    }
+    
+    <span class="comment">// Xóa canvas</span>
+    ctx.clearRect(<span class="number">0</span>, <span class="number">0</span>, canvas.width, canvas.height);
+    
+    <span class="comment">// Vẽ từng ô của mê cung</span>
+    <span class="keyword">for</span> (<span class="keyword">let</span> y = <span class="number">0</span>; y < currentMaze.height; y++) {
+        <span class="keyword">for</span> (<span class="keyword">let</span> x = <span class="number">0</span>; x < currentMaze.width; x++) {
+            drawCell(x, y);
+        }
+    }
+    
+    <span class="comment">// Vẽ người chơi và đích</span>
+    drawPlayer();
+    drawGoal();
+}</pre>
+
+    <h3>5. Vẽ Từng Thành Phần</h3>
+    <pre><span class="keyword">function</span> <span class="function">drawCell</span>(x, y) {
+    <span class="keyword">const</span> isWall = currentMaze.grid[y][x] === <span class="number">1</span>;
+    <span class="keyword">const</span> cellX = x * cellSize;
+    <span class="keyword">const</span> cellY = y * cellSize;
+    
+    <span class="comment">// Vẽ nền ô</span>
+    ctx.fillStyle = isWall ? THEMES.default.wall : THEMES.default.path;
+    ctx.fillRect(cellX, cellY, cellSize, cellSize);
+}
+
+<span class="keyword">function</span> <span class="function">drawPlayer</span>() {
+    <span class="keyword">const</span> x = playerPos.x * cellSize;
+    <span class="keyword">const</span> y = playerPos.y * cellSize;
+    
+    <span class="comment">// Vẽ hiệu ứng phát sáng</span>
+    <span class="keyword">const</span> gradient = ctx.createRadialGradient(
+        x + cellSize/<span class="number">2</span>, y + cellSize/<span class="number">2</span>, <span class="number">0</span>,
+        x + cellSize/<span class="number">2</span>, y + cellSize/<span class="number">2</span>, cellSize
+    );
+    gradient.addColorStop(<span class="number">0</span>, <span class="string">'rgba(231, 76, 60, 0.3)'</span>);
+    gradient.addColorStop(<span class="number">1</span>, <span class="string">'rgba(231, 76, 60, 0)'</span>);
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x - cellSize/<span class="number">2</span>, y - cellSize/<span class="number">2</span>, 
+                cellSize*<span class="number">2</span>, cellSize*<span class="number">2</span>);
+    
+    <span class="comment">// Vẽ người chơi</span>
+    ctx.beginPath();
+    ctx.fillStyle = THEMES.default.player;
+    ctx.arc(x + cellSize/<span class="number">2</span>, y + cellSize/<span class="number">2</span>, 
+            cellSize/<span class="number">3</span>, <span class="number">0</span>, Math.PI * <span class="number">2</span>);
+    ctx.fill();
+}</pre>
+
+    <h3>6. Xử Lý Di Chuyển</h3>
+    <pre><span class="keyword">function</span> <span class="function">handleKeyPress</span>(event) {
+    <span class="keyword">if</span> (!isGameActive) <span class="keyword">return</span>;
+    
+    <span class="keyword">const</span> key = event.key.toLowerCase();
+    <span class="keyword">const</span> oldPos = {...playerPos};
+    
+    <span class="keyword">switch</span>(key) {
+        <span class="keyword">case</span> <span class="string">'arrowup'</span>:
+        <span class="keyword">case</span> <span class="string">'w'</span>:
+            <span class="keyword">if</span> (canMove(playerPos.x, playerPos.y - <span class="number">1</span>)) 
+                playerPos.y -= <span class="number">1</span>;
+            <span class="keyword">break</span>;
+        <span class="keyword">case</span> <span class="string">'arrowdown'</span>:
+        <span class="keyword">case</span> <span class="string">'s'</span>:
+            <span class="keyword">if</span> (canMove(playerPos.x, playerPos.y + <span class="number">1</span>)) 
+                playerPos.y += <span class="number">1</span>;
+            <span class="keyword">break</span>;
+        <span class="comment">// ... các phím khác tương tự</span>
+    }
+    
+    <span class="keyword">if</span> (oldPos.x !== playerPos.x || oldPos.y !== playerPos.y) {
+        markVisited(playerPos.x, playerPos.y);
+        drawMaze();
+        checkWin();
+    }
+}</pre>
+
+    <div class="warning">
+        <strong>Kiến thức cần nắm:</strong>
+        <ul>
+            <li>HTML5 Canvas API</li>
+            <li>JavaScript Events</li>
+            <li>Async/Await và Promises</li>
+            <li>Object-Oriented JavaScript</li>
+        </ul>
+    </div>
+
+    <h3>7. Các Khái Niệm Canvas Quan Trọng</h3>
+    <div class="note">
+        <h4>Canvas Context (ctx)</h4>
+        <p>Canvas context là công cụ chính để vẽ, cung cấp các phương thức như:</p>
+        <ul>
+            <li><code>fillRect(x, y, width, height)</code>: Vẽ hình chữ nhật đặc</li>
+            <li><code>arc(x, y, radius, startAngle, endAngle)</code>: Vẽ hình tròn/cung</li>
+            <li><code>createRadialGradient()</code>: Tạo gradient tỏa tròn</li>
+            <li><code>clearRect()</code>: Xóa vùng vẽ</li>
+        </ul>
+    </div>
+
+    <h3>8. Debug và Tối Ưu</h3>
+    <p>Các điểm cần chú ý khi debug:</p>
+    <ul>
+        <li>Kiểm tra console.log để theo dõi luồng chương trình</li>
+        <li>Xác nhận kích thước canvas phù hợp</li>
+        <li>Đảm bảo các sự kiện bàn phím hoạt động</li>
+        <li>Kiểm tra tính hợp lệ của dữ liệu mê cung</li>
+    </ul>
+
+    <div class="note">
+        <strong>Mẹo Tối Ưu:</strong>
+        <ul>
+            <li>Chỉ vẽ lại khi cần thiết</li>
+            <li>Sử dụng requestAnimationFrame cho animation</li>
+            <li>Cache các giá trị tính toán thường xuyên</li>
+            <li>Tránh tạo object mới trong vòng lặp</li>
+        </ul>
+    </div>
+</div>
+
+<div class="section">
+    <h2>File templates/maze.html - Giao Diện Người Dùng</h2>
+    
+    <p>File HTML này định nghĩa giao diện người dùng của trò chơi mê cung. Nó sử dụng Jinja2 templates của Flask và bao gồm các thành phần điều khiển trò chơi.</p>
+
+    <h3>1. Cấu Trúc Template</h3>
+    <pre><span class="comment">{# Kế thừa từ template gốc #}</span>
+{% <span class="keyword">extends</span> <span class="string">"base.html"</span> %}
+
+{% <span class="keyword">block</span> title %}Maze Generator - Play{% <span class="keyword">endblock</span> %}
+
+{% <span class="keyword">block</span> content %}
+<span class="builtin">&lt;div</span> <span class="function">class</span>=<span class="string">"maze-container"</span><span class="builtin">&gt;</span>
+    <span class="comment">&lt;!-- Phần điều khiển --&gt;</span>
+    <span class="builtin">&lt;div</span> <span class="function">class</span>=<span class="string">"controls"</span><span class="builtin">&gt;</span>
+        <span class="builtin">&lt;div</span> <span class="function">class</span>=<span class="string">"control-group"</span><span class="builtin">&gt;</span>
+            <span class="builtin">&lt;label</span> <span class="function">for</span>=<span class="string">"mazeWidth"</span><span class="builtin">&gt;</span>Chiều rộng:<span class="builtin">&lt;/label&gt;</span>
+            <span class="builtin">&lt;input</span> <span class="function">type</span>=<span class="string">"number"</span> <span class="function">id</span>=<span class="string">"mazeWidth"</span> 
+                <span class="function">value</span>=<span class="string">"15"</span> <span class="function">min</span>=<span class="string">"5"</span> <span class="function">max</span>=<span class="string">"30"</span><span class="builtin">&gt;</span>
+            
+            <span class="builtin">&lt;label</span> <span class="function">for</span>=<span class="string">"mazeHeight"</span><span class="builtin">&gt;</span>Chiều cao:<span class="builtin">&lt;/label&gt;</span>
+            <span class="builtin">&lt;input</span> <span class="function">type</span>=<span class="string">"number"</span> <span class="function">id</span>=<span class="string">"mazeHeight"</span> 
+                <span class="function">value</span>=<span class="string">"15"</span> <span class="function">min</span>=<span class="string">"5"</span> <span class="function">max</span>=<span class="string">"30"</span><span class="builtin">&gt;</span>
+            
+            <span class="builtin">&lt;button</span> <span class="function">id</span>=<span class="string">"generateMaze"</span> <span class="function">class</span>=<span class="string">"btn"</span><span class="builtin">&gt;</span>
+                Tạo Mê Cung Mới
+            <span class="builtin">&lt;/button&gt;</span>
+        <span class="builtin">&lt;/div&gt;</span>
+    <span class="builtin">&lt;/div&gt;</span>
+
+    <span class="comment">&lt;!-- Khu vực chơi game --&gt;</span>
+    <span class="builtin">&lt;div</span> <span class="function">class</span>=<span class="string">"game-area"</span><span class="builtin">&gt;</span>
+        <span class="builtin">&lt;canvas</span> <span class="function">id</span>=<span class="string">"mazeCanvas"</span><span class="builtin">&gt;&lt;/canvas&gt;</span>
+        <span class="builtin">&lt;div</span> <span class="function">class</span>=<span class="string">"status-overlay"</span><span class="builtin">&gt;</span>
+            <span class="builtin">&lt;p</span> <span class="function">id</span>=<span class="string">"statusMessage"</span><span class="builtin">&gt;&lt;/p&gt;</span>
+        <span class="builtin">&lt;/div&gt;</span>
+    <span class="builtin">&lt;/div&gt;</span>
+
+    <span class="comment">&lt;!-- Hướng dẫn --&gt;</span>
+    <span class="builtin">&lt;div</span> <span class="function">class</span>=<span class="string">"instructions"</span><span class="builtin">&gt;</span>
+        <span class="builtin">&lt;h3&gt;</span>Hướng Dẫn Chơi<span class="builtin">&lt;/h3&gt;</span>
+        <span class="builtin">&lt;p&gt;</span>Sử dụng phím mũi tên hoặc WASD để di chuyển<span class="builtin">&lt;/p&gt;</span>
+        <span class="builtin">&lt;ul&gt;</span>
+            <span class="builtin">&lt;li&gt;</span>↑/W: Di chuyển lên<span class="builtin">&lt;/li&gt;</span>
+            <span class="builtin">&lt;li&gt;</span>↓/S: Di chuyển xuống<span class="builtin">&lt;/li&gt;</span>
+            <span class="builtin">&lt;li&gt;</span>←/A: Di chuyển trái<span class="builtin">&lt;/li&gt;</span>
+            <span class="builtin">&lt;li&gt;</span>→/D: Di chuyển phải<span class="builtin">&lt;/li&gt;</span>
+        <span class="builtin">&lt;/ul&gt;</span>
+    <span class="builtin">&lt;/div&gt;</span>
+<span class="builtin">&lt;/div&gt;</span>
+{% <span class="keyword">endblock</span> %}</pre>
+
+    <h3>2. CSS Styles</h3>
+    <pre>{% <span class="keyword">block</span> extra_css %}
+<span class="builtin">&lt;style&gt;</span>
+    <span class="comment">/* Container chính */</span>
+    .<span class="function">maze-container</span> {
+        max-width: <span class="number">1200px</span>;
+        margin: <span class="number">0</span> auto;
+        padding: <span class="number">20px</span>;
+    }
+
+    <span class="comment">/* Phần điều khiển */</span>
+    .<span class="function">controls</span> {
+        margin-bottom: <span class="number">20px</span>;
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: <span class="number">10px</span>;
+    }
+
+    <span class="comment">/* Khu vực chơi game */</span>
+    .<span class="function">game-area</span> {
+        position: relative;
+        margin: <span class="number">20px</span> <span class="number">0</span>;
+        display: flex;
+        justify-content: center;
+    }
+
+    <span class="comment">/* Canvas mê cung */</span>
+    #<span class="function">mazeCanvas</span> {
+        border: <span class="number">2px</span> solid #333;
+        box-shadow: <span class="number">0</span> <span class="number">0</span> <span class="number">10px</span> rgba(<span class="number">0</span>,<span class="number">0</span>,<span class="number">0</span>,<span class="number">0.1</span>);
+    }
+
+    <span class="comment">/* Responsive design */</span>
+    @media (max-width: <span class="number">600px</span>) {
+        .<span class="function">maze-container</span> {
+            padding: <span class="number">10px</span>;
+        }
+        
+        .<span class="function">controls</span> {
+            flex-direction: column;
+        }
+    }
+<span class="builtin">&lt;/style&gt;</span>
+{% <span class="keyword">endblock</span> %}</pre>
+
+    <h3>3. JavaScript Imports</h3>
+    <pre>{% <span class="keyword">block</span> scripts %}
+<span class="builtin">&lt;script</span> <span class="function">src</span>="{{ url_for(<span class="string">'static'</span>, filename=<span class="string">'js/maze_display.js'</span>) }}"<span class="builtin">&gt;&lt;/script&gt;</span>
+<span class="builtin">&lt;script&gt;</span>
+    document.addEventListener(<span class="string">'DOMContentLoaded'</span>, <span class="keyword">function</span>() {
+        initMazeGame();
+    });
+<span class="builtin">&lt;/script&gt;</span>
+{% <span class="keyword">endblock</span> %}</pre>
+
+    <h3>4. Giải Thích Chi Tiết</h3>
+
+    <h4>Template Jinja2</h4>
+    <div class="note">
+        <p>File sử dụng Jinja2 template engine với các tính năng:</p>
+        <ul>
+            <li><code>{% extends "base.html" %}</code>: Kế thừa từ template gốc</li>
+            <li><code>{% block content %}</code>: Định nghĩa nội dung riêng</li>
+            <li><code>{{ url_for() }}</code>: Tạo URL động cho static files</li>
+        </ul>
+    </div>
+
+    <h4>Cấu Trúc HTML</h4>
+    <p>Giao diện được chia thành 3 phần chính:</p>
+    <ol>
+        <li><strong>Điều khiển (Controls)</strong>
+            <ul>
+                <li>Input số cho kích thước mê cung</li>
+                <li>Nút tạo mê cung mới</li>
+                <li>Các điều khiển bổ sung</li>
+            </ul>
+        </li>
+        <li><strong>Khu vực chơi (Game Area)</strong>
+            <ul>
+                <li>Canvas để vẽ mê cung</li>
+                <li>Overlay hiển thị thông báo</li>
+            </ul>
+        </li>
+        <li><strong>Hướng dẫn (Instructions)</strong>
+            <ul>
+                <li>Giải thích cách điều khiển</li>
+                <li>Mục tiêu trò chơi</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="warning">
+        <strong>Lưu ý về Responsive Design:</strong>
+        <ul>
+            <li>Sử dụng flexbox cho layout linh hoạt</li>
+            <li>Media queries cho màn hình nhỏ</li>
+            <li>Canvas tự động điều chỉnh kích thước</li>
+        </ul>
+    </div>
+
+    <h4>Tối Ưu Hiệu Năng</h4>
+    <div class="note">
+        <p>Các kỹ thuật tối ưu được áp dụng:</p>
+        <ul>
+            <li>Script được đặt ở cuối body</li>
+            <li>Sử dụng DOMContentLoaded để khởi tạo</li>
+            <li>CSS được tách thành block riêng</li>
+            <li>Responsive images và media queries</li>
+        </ul>
+    </div>
+
+    <h4>Debugging</h4>
+    <p>Khi gặp vấn đề, kiểm tra:</p>
+    <ul>
+        <li>Canvas đã được khởi tạo đúng chưa</li>
+        <li>Các file JavaScript đã được load chưa</li>
+        <li>Event listeners có hoạt động không</li>
+        <li>Console có hiện lỗi gì không</li>
+    </ul>
+</div>
+<div class="section">
+    <h2>Cấu Trúc Thư Mục và Cách Chạy Ứng Dụng</h2>
+    
+    <h3>1. Cấu Trúc Thư Mục</h3>
+    <pre><span class="comment"># Cấu trúc thư mục dự án</span>
+maze_generator/
+│
+├── static/               <span class="comment"># Thư mục chứa files tĩnh</span>
+│   ├── css/
+│   │   └── style.css    <span class="comment"># CSS cho trang web</span>
+│   └── js/
+│       └── maze_display.js  <span class="comment"># JavaScript xử lý mê cung</span>
+│
+├── templates/            <span class="comment"># Thư mục chứa templates HTML</span>
+│   ├── base.html        <span class="comment"># Template gốc</span>
+│   └── maze.html        <span class="comment"># Template trang mê cung</span>
+│
+├── main.py              <span class="comment"># File chính chạy ứng dụng Flask</span>
+└── maze_generator.py    <span class="comment"># Module tạo mê cung</span></pre>
+
+    <h3>2. Cách Tạo Dự Án</h3>
+    <ol>
+        <li>Mở PyCharm</li>
+        <li>Chọn "Create New Project"</li>
+        <li>Đặt tên dự án là "maze_generator"</li>
+        <li>Chọn "Previously configured interpreter"</li>
+        <li>✓ Đánh dấu vào "Create a welcome script"</li>
+        <li>Click "Create"</li>
+    </ol>
+
+    <h3>3. Cài Đặt Flask</h3>
+    <ol>
+        <li>Trong PyCharm, mở Terminal (View → Tool Windows → Terminal)</li>
+        <li>Gõ lệnh: <code>pip install flask</code></li>
+    </ol>
+
+    <h3>4. Tạo Code</h3>
+    <ol>
+        <li>Mở file main.py trong PyCharm</li>
+        <li>Xóa nội dung có sẵn</li>
+        <li>Copy và paste code mẫu vào main.py</li>
+        <li>Lưu file (Ctrl+S)</li>
+    </ol>
+
+    <h3>5. Chạy Ứng Dụng</h3>
+    <ol>
+        <li>Click chuột phải vào main.py</li>
+        <li>Chọn "Run 'main'"</li>
+        <li>Mở trình duyệt web và truy cập: <code>http://localhost:5000</code></li>
+    </ol>
+
+    <h3>6. Thông Báo Khi Chạy</h3>
+    <pre>* Running on http://127.0.0.1:5000/ (Press CTRL+C to quit)
+* Restarting with stat
+* Debugger is active!
+* Debugger PIN: XXX-XXX-XXX</pre>
+
+    <div class="warning">
+        <p>Nếu gặp lỗi "Port 5000 is in use", click nút Stop (nút vuông đỏ) và chạy lại.</p>
+    </div>
+</div>
+
+<div class="section">
+    <h2>Từ Điển Thuật Ngữ Kỹ Thuật</h2>
+    <p>Các thuật ngữ kỹ thuật được sử dụng trong dự án và ý nghĩa của chúng:</p>
+
+    <table class="glossary-table">
+        <thead>
+            <tr>
+                <th>Tiếng Anh</th>
+                <th>Tiếng Việt</th>
+                <th>Mô Tả</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Canvas</td>
+                <td>Vùng vẽ</td>
+                <td>Phần tử HTML5 cho phép vẽ đồ họa động bằng JavaScript</td>
+            </tr>
+            <tr>
+                <td>Recursive Backtracking</td>
+                <td>Đệ quy quay lui</td>
+                <td>Thuật toán tạo mê cung bằng cách đệ quy và quay lui khi gặp đường cụt</td>
+            </tr>
+            <tr>
+                <td>Event Listener</td>
+                <td>Trình xử lý sự kiện</td>
+                <td>Code theo dõi và phản ứng với các hành động của người dùng (nhấn phím, click chuột)</td>
+            </tr>
+            <tr>
+                <td>Template Engine</td>
+                <td>Bộ xử lý mẫu</td>
+                <td>Công cụ cho phép kết hợp dữ liệu với HTML (Jinja2 trong Flask)</td>
+            </tr>
+            <tr>
+                <td>Route</td>
+                <td>Đường dẫn</td>
+                <td>URL pattern trong web app để xử lý các request khác nhau</td>
+            </tr>
+            <tr>
+                <td>Endpoint</td>
+                <td>Điểm cuối</td>
+                <td>URL cụ thể trong API để nhận và xử lý request</td>
+            </tr>
+            <tr>
+                <td>Grid</td>
+                <td>Lưới</td>
+                <td>Mảng 2 chiều biểu diễn mê cung (0 = đường đi, 1 = tường)</td>
+            </tr>
+            <tr>
+                <td>Debug Mode</td>
+                <td>Chế độ gỡ lỗi</td>
+                <td>Trạng thái chạy ứng dụng với các công cụ hỗ trợ tìm và sửa lỗi</td>
+            </tr>
+            <tr>
+                <td>HTTP Status Code</td>
+                <td>Mã trạng thái HTTP</td>
+                <td>Số cho biết kết quả của request (200 = OK, 404 = Not Found, 500 = Error)</td>
+            </tr>
+            <tr>
+                <td>Static Files</td>
+                <td>Tập tin tĩnh</td>
+                <td>Files không thay đổi như CSS, JavaScript, hình ảnh</td>
+            </tr>
+            <tr>
+                <td>Responsive Design</td>
+                <td>Thiết kế tương thích</td>
+                <td>Thiết kế web tự động điều chỉnh theo kích thước màn hình</td>
+            </tr>
+            <tr>
+                <td>Async/Await</td>
+                <td>Bất đồng bộ</td>
+                <td>Cơ chế xử lý các tác vụ mà không chặn luồng chính của chương trình</td>
+            </tr>
+            <tr>
+                <td>DOM</td>
+                <td>Mô hình đối tượng tài liệu</td>
+                <td>Cấu trúc cây biểu diễn các phần tử HTML trên trang web</td>
+            </tr>
+            <tr>
+                <td>API</td>
+                <td>Giao diện lập trình ứng dụng</td>
+                <td>Giao thức cho phép các phần của ứng dụng giao tiếp với nhau</td>
+            </tr>
+            <tr>
+                <td>Recursion</td>
+                <td>Đệ quy</td>
+                <td>Kỹ thuật lập trình trong đó hàm tự gọi lại chính nó</td>
+            </tr>
+            <tr>
+                <td>Rendering</td>
+                <td>Dựng hình</td>
+                <td>Quá trình hiển thị đồ họa lên màn hình</td>
+            </tr>
+            <tr>
+                <td>Dependencies</td>
+                <td>Phụ thuộc</td>
+                <td>Các thư viện và package cần thiết cho ứng dụng hoạt động</td>
+            </tr>
+            <tr>
+                <td>Port</td>
+                <td>Cổng</td>
+                <td>Số định danh cho phép nhiều ứng dụng web chạy cùng lúc (vd: 5000)</td>
+            </tr>
+            <tr>
+                <td>Debugging</td>
+                <td>Gỡ lỗi</td>
+                <td>Quá trình tìm và sửa lỗi trong code</td>
+            </tr>
+            <tr>
+                <td>Framework</td>
+                <td>Framework</td>
+                <td>Bộ công cụ và thư viện hỗ trợ phát triển ứng dụng (vd: Flask)</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="note">
+        <strong>Lưu ý:</strong> Các thuật ngữ này thường xuyên được sử dụng trong phát triển web nói chung, không chỉ riêng trong dự án này.
+    </div>
+</div>
+    </div>
+</body>
+</html>
